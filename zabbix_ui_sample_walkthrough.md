@@ -150,3 +150,61 @@ With the stress test running, watch the alert trigger fire in real-time.
 3.  **Watch the Alert Auto-Resolve**:
     *   Once the CPU load returns to normal (< 80%), Zabbix will evaluate the expression `last() > 80` as false.
     *   The problem status changes from `PROBLEM` to `RESOLVED` and disappears from the active Problems widget.
+
+---
+
+## Step 6: Monitoring Memory (RAM) & Disk Space (HDD)
+
+Zabbix monitors system memory and disk space using specialized item keys. Below is how to locate these metrics, create triggers for them, and safely simulate alerts.
+
+### 1. Locating the Metrics in the Web UI
+1. Go to **Monitoring** -> **Latest data**.
+2. Filter by Host: `test-ubuntu-vm` and click **Apply**.
+3. Search for:
+   * **Memory**: `Available memory` (Key: `vm.memory.size[available]`)
+   * **Disk**: `Space on /: Free` (Key: `vfs.fs.size[/,free]`)
+4. Click **Graph** in the row of either metric to see history.
+
+---
+
+### 2. Setting Up & Simulating a Memory (RAM) Alert
+Instead of consuming gigabytes of real RAM on your machine (which can crash your system), we simulate the alert by setting a threshold slightly above your current free memory:
+
+1. Look at your current **Available memory** in the **Latest data** screen (for example: `5.2 GB`).
+2. Go to **Data collection** -> **Hosts** -> click **Triggers** in the `test-ubuntu-vm` row.
+3. Click **Create trigger** in the top right:
+   * **Name**: `Low Free Memory Warning on test-ubuntu-vm`
+   * **Severity**: 🟡 **Warning**
+   * **Expression**: Click **Add**:
+     * *Item*: Select `Available memory`
+     * *Function*: `last()`
+     * *Result*: Select `<` and enter a value slightly **higher** than your current free memory (e.g., if you have `5.2G` free, enter **`5.5G`** or **`6G`** to force the alert to trigger).
+     * The expression will look like:
+       ```text
+       last(/test-ubuntu-vm/vm.memory.size[available]) < 5.5G
+       ```
+4. Click **Add**. 
+5. Within 60 seconds, Zabbix will poll the memory, evaluate the expression, fire a **Warning** alert on the dashboard, and send a notification to your Telegram bot.
+6. **To Resolve**: Edit the trigger and set the threshold back to a standard production value (e.g., `< 500M` or `< 1G`).
+
+---
+
+### 3. Setting Up & Simulating a Disk Space (HDD) Alert
+Similarly, we trigger a disk alert safely by adjusting the trigger threshold to match your current free storage:
+
+1. Look at your current **Free disk space on /: Free** in the **Latest data** screen (for example: `940 GB`).
+2. Go to **Data collection** -> **Hosts** -> click **Triggers** in the `test-ubuntu-vm` row.
+3. Click **Create trigger**:
+   * **Name**: `Low Free Disk Space on test-ubuntu-vm`
+   * **Severity**: 🟠 **Average**
+   * **Expression**: Click **Add**:
+     * *Item*: Select `Space on /: Free`
+     * *Function*: `last()`
+     * *Result*: Select `<` and enter a value slightly **higher** than your current free space (e.g., if you have `940G` free, enter **`950G`** or **`1T`** to trigger the alert).
+     * The expression will look like:
+       ```text
+       last(/test-ubuntu-vm/vfs.fs.size[/,free]) < 950G
+       ```
+4. Click **Add**.
+5. Verify that the alert fires on the Zabbix Dashboard and dispatches to your Telegram channel.
+6. **To Resolve**: Edit the trigger and lower the threshold back to a production level (e.g., `< 10G` or `< 5G`).

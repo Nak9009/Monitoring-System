@@ -144,6 +144,29 @@ To automatically send alerts to administrators via Email or Telegram Webhooks:
 2.  Ensure that the action **Report problems to Zabbix administrators** is set to **Enabled**.
 3.  *Any problem matching the trigger rules will now automatically generate and dispatch an alert to your users.*
 
+### 6.4 Active Agent Auto-Registration (Automating 40+ VMs)
+To avoid adding 40+ hosts manually via the Zabbix Web UI, configure Active Agent Auto-Registration. This automatically discovers, adds, groups, and templates new VMs when their Zabbix Agents start up.
+
+#### Step 1: Configure Agent HostMetadata (Optional but recommended)
+In the agent configuration file `/etc/zabbix/zabbix_agent2.conf` on your VMs, add a metadata tag so the Zabbix Server can categorize them:
+```ini
+HostMetadata=LinuxServer
+```
+
+#### Step 2: Create Auto-Registration Action in Web UI
+1. Go to **Alerts** -> **Actions** -> select **Autoregistration actions** from the page title dropdown.
+2. Click the blue **Create action** button in the top right.
+3. In the **Action** tab:
+   * **Name**: `Auto-register Linux VMs`
+   * **Conditions**: Click **Add** -> select **Host metadata** -> contains **`LinuxServer`** (matches the `HostMetadata` tag from Step 1).
+4. In the **Operations** tab, click **Add** to specify what Zabbix should do when a VM connects:
+   * **Operation**: Select **Add host**.
+   * Click **Add** again and select **Add to host groups**: Select **`Virtual Machines`**.
+   * Click **Add** again and select **Link to templates**: Select **`Linux by Zabbix agent`**.
+5. Click the blue **Add** button at the bottom to save the Auto-Registration Action.
+
+*Once saved, any new VM with the Zabbix Agent running and pointing to the Server VIP will automatically register, join the Virtual Machines group, inherit the Linux template, and begin reporting metrics.*
+
 ---
 
 ## 7. Creating Maintenance Windows
@@ -185,3 +208,72 @@ Permissions in Zabbix are assigned to **User Groups** and mapped against **Host 
 5.  Under the **Users** tab:
     *   Add user accounts to the group.
 6.  Click **Add**.
+
+---
+
+## 9. Monitoring Databases & Applications
+
+Zabbix Agent 2 contains built-in plugins that monitor service runtimes and database engines. 
+
+### 9.1 Monitoring Docker Containers
+1. Go to **Data collection** -> **Hosts**.
+2. Click on your target host (e.g., `test-ubuntu-vm`) and go to the **Templates** tab.
+3. Link the template **`Docker by Zabbix agent 2`**.
+4. Click **Update**. 
+*Zabbix will automatically discover all running containers and track their status, CPU, memory, and network throughput.*
+
+### 9.2 Monitoring MySQL/PostgreSQL Databases
+1. Link the template **`MySQL by Zabbix agent 2`** or **`PostgreSQL by Zabbix agent 2`** to your target host.
+2. Go to the **Macros** tab on the host configuration.
+3. Configure the database user, password, and port macros (e.g., `{$MYSQL.USER}`, `{$MYSQL.PASSWORD}`).
+4. Click **Update**. Zabbix will monitor connections, query execution speeds, slow queries, and replication delays.
+
+---
+
+## 10. Visualizing Metrics in Grafana
+
+While Zabbix is the backend collection engine, Grafana provides modern, high-quality dashboards (similar to DigitalOcean Insights).
+
+1. Go to **`http://localhost:3000`** and log in with your credentials.
+2. Select **Dashboards** from the left-hand menu.
+3. Import community dashboards:
+   * **Linux Host monitoring**: Import ID **`6126`**
+   * **Windows Host monitoring**: Import ID **`14339`**
+4. Bind the dashboard to the **`Zabbix`** data source to immediately see clean metrics for CPU, RAM, Disk, and Network I/O.
+
+---
+
+## 11. Searching Logs in Grafana (Loki)
+
+System logs and container logs are shipped by Promtail to Loki, and are fully searchable inside Grafana:
+
+1. In Grafana, click the **Explore** (compass) icon in the sidebar.
+2. Select **Loki** from the data source dropdown at the top.
+3. Use the query builder or enter LogQL queries in the input box:
+   * View all Docker container logs:
+     ```text
+     {job="docker"}
+     ```
+   * View logs for a specific container:
+     ```text
+     {container_name="test-ubuntu-vm"}
+     ```
+   * Filter logs containing the word "error" (case-insensitive):
+     ```text
+     {job="docker"} |~ "(?i)error"
+     ```
+
+---
+
+## 12. Synthetic Website & Endpoint Monitoring (Uptime Kuma)
+
+To monitor public-facing websites, API endpoints, ping times, and SSL certificate expiries:
+
+1. Go to Uptime Kuma at **`http://localhost:3001`**.
+2. Click the **Add New Monitor** button in the top left:
+   * **Monitor Type**: Select `HTTP(s)`, `Ping`, or `TCP Port`.
+   * **Friendly Name**: Enter a name (e.g., `Company Web App`).
+   * **URL**: Enter the URL to check (e.g., `https://mycompany.com`).
+   * **Heartbeat Interval**: How often to check (default: `60` seconds).
+3. Click **Save**.
+*Uptime Kuma will start tracking response times and uptime statistics, and you can build public status pages under the **Status Pages** menu.*

@@ -65,9 +65,51 @@ New-NetFirewallRule -DisplayName "Zabbix Server Active" -Direction Outbound -Rem
 
 ---
 
-## 3. Ubuntu VM: Agent Installation & Setup
+## 3. Bulk Agent Deployment via Ansible (For 40+ VMs)
 
-Follow these commands to install and configure the Zabbix Agent 2 on the Ubuntu VM.
+If you have a large number of VMs (e.g., 40+), you should not install the agent manually. Instead, use the automated Ansible playbooks provided in the `ansible/` directory.
+
+### Step 1: Install Ansible on your Control Machine
+If running `ansible-playbook` returns `command not found` on your macOS or Linux workstation, you must install Ansible:
+
+*   **Via Homebrew (macOS)**:
+    ```bash
+    brew install ansible
+    ```
+*   **Via Python/pip (Cross-Platform)**:
+    ```bash
+    pip3 install ansible
+    ```
+
+### Step 2: Configure the Ansible Inventory
+Navigate to the `ansible/` directory:
+```bash
+cd /Users/ratanakieng/labs/Monitoring-System/ansible
+```
+Edit the `inventory` file to include all 40+ VM IP addresses or hostnames under the target group:
+```ini
+[monitored_hosts]
+10.0.100.20
+10.0.100.21
+10.0.100.30
+# Add remaining 40+ VMs here...
+```
+
+### Step 3: Configure Variables
+Ensure the playbook variables (in `group_vars/all.yml` or your playbooks) point to your Zabbix Keepalived VIP:
+*   `zabbix_server_ip`: `10.0.100.100`
+
+### Step 4: Run the Deployment Playbook
+Deploy Zabbix Agent 2 and automatically generate secure PSK credentials on all target machines in parallel:
+```bash
+ansible-playbook -i inventory playbooks/deploy_agents.yml
+```
+
+---
+
+## 4. Ubuntu VM: Agent Manual Installation & Setup
+
+Follow these commands to install and configure the Zabbix Agent 2 manually on individual Ubuntu VMs.
 
 ### Step 1: Install Zabbix Repo and Packages
 ```bash
@@ -111,9 +153,9 @@ sudo systemctl restart zabbix-agent2
 
 ---
 
-## 4. Windows VM: Agent Installation & Setup
+## 5. Windows VM: Agent Manual Installation & Setup
 
-Follow these steps to deploy the Zabbix Agent 2 on the Windows VM.
+Follow these steps to deploy the Zabbix Agent 2 manually on individual Windows VMs.
 
 ### Step 1: Download & Silent Install
 Download the official Zabbix Agent 2 MSI installer for Windows and run the following silent installation command in an Administrator Command Prompt or PowerShell:
@@ -142,7 +184,7 @@ Restart-Service -Name "Zabbix Agent 2"
 
 ---
 
-## 5. Verification Scenarios
+## 6. Verification Scenarios
 
 Run these tests to confirm that your target VMs are working properly with the monitoring infrastructure.
 
@@ -202,7 +244,7 @@ zabbix_get -s 10.0.100.30 -k agent.ping \
 
 ---
 
-## 6. Troubleshooting Common Agent Issues
+## 7. Troubleshooting Common Agent Issues
 
 | Issue / Error | Likely Cause | Solution |
 | :--- | :--- | :--- |
