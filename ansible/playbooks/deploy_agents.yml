@@ -1,0 +1,7 @@
+---
+- name: Deploy Zabbix Agent 2 to Monitored Hosts
+  hosts: linux_servers
+  become: yes
+  roles:
+    - common
+    - zabbix-agent

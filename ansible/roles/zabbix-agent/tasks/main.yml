@@ -1,0 +1,40 @@
+---
+# Install and configure Zabbix Agent 2 (Linux)
+
+- name: Add Zabbix release repository package
+  apt:
+    deb: "https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.0+ubuntu{{ ansible_distribution_version }}_all.deb"
+  when: ansible_distribution_version is defined
+
+- name: Install Zabbix Agent 2
+  apt:
+    name:
+      - zabbix-agent2
+      - zabbix-agent2-plugin-*
+    state: present
+    update_cache: yes
+
+- name: Include PSK generation tasks
+  include_tasks: generate_psk.yml
+  when: zabbix_use_psk | bool
+
+- name: Configure Zabbix Agent 2
+  template:
+    src: zabbix_agent2.conf.j2
+    dest: /etc/zabbix/zabbix_agent2.conf
+    owner: root
+    group: zabbix
+    mode: '0640'
+  notify: Restart zabbix-agent2
+
+- name: Open firewall port for Zabbix Agent (passive check)
+  ufw:
+    rule: allow
+    port: '10050'
+    proto: tcp
+
+- name: Ensure Zabbix Agent 2 service is started and enabled
+  systemd:
+    name: zabbix-agent2
+    state: started
+    enabled: yes

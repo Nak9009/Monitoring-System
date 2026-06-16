@@ -1,0 +1,7 @@
+---
+zabbix_server_host: "10.0.100.100"  # Keepalived VIP
+zabbix_server_active: "10.0.100.100"
+zabbix_use_psk: true
+zabbix_psk_identity: "monitoring-stack-psk"
+mysql_monitor_password: "zbx_monitor_password"
+redis_password: "redis_password_placeholder"

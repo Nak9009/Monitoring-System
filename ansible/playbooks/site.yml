@@ -1,0 +1,7 @@
+---
+# Master playbook to import all configurations
+
+- import_playbook: deploy_monitoring_server.yml
+- import_playbook: deploy_agents.yml
+- import_playbook: setup_ha.yml
+- import_playbook: configure_alerting.yml

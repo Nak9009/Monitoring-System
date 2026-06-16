@@ -1,0 +1,8 @@
+---
+# Linux agent configurations
+zabbix_agent_package: "zabbix-agent2"
+zabbix_agent_service: "zabbix-agent2"
+
+# Firewall ports to open on Linux hosts
+firewall_allowed_tcp_ports:
+  - 10050 # Zabbix Agent passive checks port

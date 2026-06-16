@@ -1,0 +1,34 @@
+# Zabbix Agent 2 Configuration
+PidFile=/var/run/zabbix/zabbix_agent2.pid
+LogFile=/var/log/zabbix/zabbix_agent2.log
+LogFileSize=50
+
+Server={{ zabbix_server_host }}
+ServerActive={{ zabbix_server_active }}
+Hostname={{ ansible_hostname }}
+
+Include=/etc/zabbix/zabbix_agent2.d/*.conf
+
+# TLS / PSK settings
+{% if zabbix_use_psk %}
+TLSConnect=psk
+TLSAccept=psk
+TLSPSKIdentity={{ zabbix_psk_identity }}
+TLSPSKFile=/etc/zabbix/zabbix_agent2.psk
+{% endif %}
+
+# Database & Cache plugin configurations
+{% if 'mysql' in (zabbix_agent_plugins | default([])) %}
+Plugins.Mysql.Sessions.default.Uri=tcp://localhost:3306
+Plugins.Mysql.Sessions.default.User=zbx_monitor
+Plugins.Mysql.Sessions.default.Password={{ mysql_monitor_password }}
+{% endif %}
+
+{% if 'redis' in (zabbix_agent_plugins | default([])) %}
+Plugins.Redis.Sessions.default.Uri=tcp://localhost:6379
+Plugins.Redis.Sessions.default.Password={{ redis_password }}
+{% endif %}
+
+BufferSend=5
+BufferSize=100
+Timeout=10

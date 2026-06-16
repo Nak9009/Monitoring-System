@@ -1,0 +1,10 @@
+---
+db_host: "127.0.0.1"
+db_user: "zabbix"
+db_password: "VaultPasswordPlaceholder123!"
+db_name: "zabbix"
+zbx_cachesize: "128M"
+zbx_historycachesize: "64M"
+zbx_valuecachesize: "64M"
+zbx_trendcachesize: "32M"
+zbx_startpollers: 10

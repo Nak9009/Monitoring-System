@@ -1,0 +1,20 @@
+---
+# Monitoring server specific variables
+
+postgres_version: "16"
+timescaledb_version: "2.14"
+
+# Postgres tuning parameters for 4GB RAM monitoring server
+pg_shared_buffers: "1GB"
+pg_effective_cache_size: "3GB"
+pg_work_mem: "16MB"
+pg_maintenance_work_mem: "256MB"
+
+# Keepalived HA Virtual IP configuration
+keepalived_vip: "10.0.100.100"
+keepalived_interface: "eth0"
+keepalived_router_id: 51
+
+# Primary vs Standby keepalived weights
+keepalived_priority_primary: 101
+keepalived_priority_standby: 100

@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: Zabbix
+    type: alexanderzobnin-zabbix-datasource
+    access: proxy
+    url: "{{ zabbix_api_url }}"
+    jsonData:
+      username: "{{ zabbix_api_user }}"
+      secureJsonData:
+        password: "{{ zabbix_api_password }}"
+      trends: true
+      cacheTTL: 60s
+    isDefault: true
+    editable: true

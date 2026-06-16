@@ -1,0 +1,23 @@
+---
+# Defaults for Ansible MySQL role (tuned for 4GB system)
+mysql_port: 3306
+db_user: "zabbix"
+db_password: "VaultPasswordPlaceholder123!"
+db_name: "zabbix"
+mysql_root_password: "RootPasswordPlaceholder123!"
+mysql_repl_user: "repl_user"
+mysql_repl_password: "ReplPasswordPlaceholder123!"
+
+# Performance / Memory tuning parameters
+mysql_buffer_pool_size: "1G"
+mysql_buffer_pool_instances: 1
+mysql_log_file_size: "256M"
+mysql_log_buffer_size: "16M"
+mysql_max_connections: 150
+
+# Subnet allowed to connect to database
+monitoring_subnet: "10.0.100.0/24"
+
+# HA / Replication defaults (dynamic based on inventory node name)
+mysql_server_id: "{{ 1 if inventory_hostname == 'mon-primary' else 2 }}"
+mysql_read_only: "{{ 0 if inventory_hostname == 'mon-primary' else 1 }}"

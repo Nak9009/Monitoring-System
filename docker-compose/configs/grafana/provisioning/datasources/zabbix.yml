@@ -1,0 +1,50 @@
+# Grafana Datasource Provisioning — Zabbix
+apiVersion: 1
+
+datasources:
+  - name: Zabbix
+    type: alexanderzobnin-zabbix-datasource
+    access: proxy
+    url: http://zabbix-frontend:8080/api_jsonrpc.php
+    isDefault: true
+    editable: true
+    jsonData:
+      username: Admin
+      trends: true
+      trendsFrom: "7d"
+      trendsRange: "4d"
+      cacheTTL: "1h"
+      dbConnectionEnable: true
+      dbConnectionDatasourceId: 2
+    secureJsonData:
+      password: "${GF_ZABBIX_PASSWORD:-zabbix}"
+
+  - name: Zabbix-MySQL
+    type: mysql
+    uid: zabbix-mysql
+    access: proxy
+    url: mysql:3306
+    user: zabbix
+    database: zabbix
+    isDefault: false
+    editable: true
+    jsonData:
+      maxOpenConns: 10
+      maxIdleConns: 5
+      connMaxLifetime: 14400
+    secureJsonData:
+      password: "${DB_PASSWORD}"
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: false
+    editable: true
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - datasourceUid: zabbix-mysql
+          matcherRegex: "host=(\\w+)"
+          name: Host
+          url: ""

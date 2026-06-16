@@ -1,0 +1,21 @@
+---
+# Generate unique pre-shared key (PSK) for secure communication
+
+- name: Check if Zabbix Agent 2 PSK file exists
+  stat:
+    path: /etc/zabbix/zabbix_agent2.psk
+  register: psk_file_status
+
+- name: Generate random 64-character hex key for PSK
+  shell: "openssl rand -hex 32"
+  register: generated_psk_key
+  when: not psk_file_status.stat.exists
+
+- name: Save PSK key to file
+  copy:
+    content: "{{ generated_psk_key.stdout }}"
+    dest: /etc/zabbix/zabbix_agent2.psk
+    owner: root
+    group: zabbix
+    mode: '0440'
+  when: not psk_file_status.stat.exists

@@ -1,0 +1,53 @@
+---
+# Install Zabbix Server 7.0, configure, import schema
+
+- name: Download Zabbix Release repository package
+  apt:
+    deb: "https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.0+ubuntu{{ ansible_distribution_version }}_all.deb"
+  when: ansible_distribution_version is defined
+
+- name: Install Zabbix Server and utility packages
+  apt:
+    name:
+      - zabbix-server-mysql
+      - zabbix-sql-scripts
+      - fping
+    state: present
+    update_cache: yes
+
+- name: Check if Zabbix schema is already imported
+  command: mysql -h 127.0.0.1 -u {{ db_user }} -D {{ db_name }} -e "SELECT 1 FROM users LIMIT 1;"
+  environment:
+    MYSQL_PWD: "{{ db_password }}"
+  register: zabbix_schema_check
+  failed_when: false
+  changed_when: false
+
+- name: Import initial Zabbix database schema
+  shell: "zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | mysql -h 127.0.0.1 -u {{ db_user }} -D {{ db_name }}"
+  environment:
+    MYSQL_PWD: "{{ db_password }}"
+  when: zabbix_schema_check.rc != 0
+  register: import_schema_result
+  changed_when: true
+
+- name: Configure Zabbix Server
+  template:
+    src: zabbix_server.conf.j2
+    dest: /etc/zabbix/zabbix_server.conf
+    owner: root
+    group: zabbix
+    mode: '0640'
+  notify: Restart zabbix-server
+
+- name: Allow Zabbix Server ports inbound
+  ufw:
+    rule: allow
+    port: '10051'
+    proto: tcp
+
+- name: Ensure Zabbix Server service is started and enabled
+  systemd:
+    name: zabbix-server
+    state: started
+    enabled: yes

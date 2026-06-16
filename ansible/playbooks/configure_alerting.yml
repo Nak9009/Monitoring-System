@@ -1,0 +1,43 @@
+---
+- name: Configure Alerting Media Types
+  hosts: monitoring_servers
+  become: yes
+  tasks:
+    - name: Create alert scripts directory
+      file:
+        path: /usr/lib/zabbix/alertscripts
+        state: directory
+        owner: root
+        group: zabbix
+        mode: '0755'
+
+    - name: Deploy Telegram Alert Webhook Script
+      copy:
+        content: |
+          #!/usr/bin/env python3
+          import sys
+          import requests
+
+          BOT_TOKEN = "{{ telegram_bot_token }}"
+          CHAT_ID = "{{ telegram_chat_id }}"
+
+          def send_telegram(subject, message):
+              text = f"<b>{subject}</b>\n\n{message}"
+              url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+              payload = {
+                  "chat_id": CHAT_ID,
+                  "text": text,
+                  "parse_mode": "HTML"
+              }
+              requests.post(url, json=payload)
+
+          if __name__ == "__main__":
+              # Zabbix sends: to, subject, message
+              if len(sys.argv) > 2:
+                  subject = sys.argv[2]
+                  message = sys.argv[3]
+                  send_telegram(subject, message)
+        dest: /usr/lib/zabbix/alertscripts/telegram_alert.py
+        owner: root
+        group: zabbix
+        mode: '0750'

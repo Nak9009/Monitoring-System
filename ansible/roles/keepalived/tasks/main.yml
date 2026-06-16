@@ -1,0 +1,53 @@
+---
+# Install and configure Keepalived for HA VIP failover
+
+- name: Install Keepalived
+  apt:
+    name: keepalived
+    state: present
+    update_cache: yes
+
+- name: Create Keepalived script directory
+  file:
+    path: /etc/keepalived/scripts
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy Keepalived check script
+  template:
+    src: check_zabbix.sh.j2
+    dest: /etc/keepalived/scripts/check_zabbix.sh
+    owner: root
+    group: root
+    mode: '0755'
+  notify: Restart keepalived
+
+- name: Configure Keepalived
+  template:
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart keepalived
+
+- name: Enable system control parameter for binding non-local VIP
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_nonlocal_bind
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Allow VRRP protocol inbound
+  ufw:
+    rule: allow
+    proto: vrrp
+
+- name: Ensure Keepalived service is started and enabled
+  systemd:
+    name: keepalived
+    state: started
+    enabled: yes

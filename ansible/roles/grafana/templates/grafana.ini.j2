@@ -1,0 +1,23 @@
+[server]
+http_port = {{ grafana_port }}
+
+[security]
+admin_user = {{ grafana_admin_user }}
+admin_password = {{ grafana_admin_password }}
+cookie_secure = true
+allow_embedding = false
+
+[auth.anonymous]
+enabled = false
+
+[smtp]
+enabled = {{ smtp_enabled }}
+host = {{ smtp_host }}
+user = {{ smtp_user }}
+password = {{ smtp_password }}
+from_address = {{ smtp_from_address }}
+from_name = Grafana Monitoring Stack
+
+[log]
+mode = console
+level = info

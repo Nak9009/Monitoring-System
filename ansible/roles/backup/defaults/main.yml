@@ -1,0 +1,5 @@
+---
+backup_destination_dir: "/var/backups/monitoring"
+backup_retention_days: 14
+db_user: "zabbix"
+db_name: "zabbix"

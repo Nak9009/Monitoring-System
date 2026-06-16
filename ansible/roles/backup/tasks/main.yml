@@ -1,0 +1,27 @@
+---
+# Setup automated backups via cron jobs
+
+- name: Create backup destination directory
+  file:
+    path: "{{ backup_destination_dir }}"
+    state: directory
+    owner: mysql
+    group: mysql
+    mode: '0750'
+
+- name: Install backup script
+  template:
+    src: backup.sh.j2
+    dest: /usr/local/bin/backup_monitoring.sh
+    owner: root
+    group: root
+    mode: '0750'
+
+- name: Create cron job for daily backup at 2 AM
+  ansible.builtin.cron:
+    name: "daily_monitoring_backup"
+    minute: "0"
+    hour: "2"
+    job: "/usr/local/bin/backup_monitoring.sh > /dev/null 2>&1"
+    user: root
+    state: present

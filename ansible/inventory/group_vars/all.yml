@@ -1,0 +1,34 @@
+---
+# Global variables for the Enterprise Monitoring Stack
+
+zabbix_version: "7.0"
+zabbix_repo_url: "https://repo.zabbix.com/zabbix/7.0/ubuntu"
+
+# Zabbix configuration settings
+zabbix_server_ip: "10.0.100.100"  # Keepalived VIP
+zabbix_server_port: 10051
+
+# PSK configuration for secure agent communication
+zabbix_use_psk: true
+zabbix_psk_identity: "monitoring-stack-psk"
+
+# Vault-encrypted or placeholder credentials (to be customized by user)
+# Use ansible-vault encrypt_string to encrypt these in production.
+db_user: "zabbix"
+db_password: "VaultPasswordPlaceholder123!"
+db_name: "zabbix"
+
+# Grafana admin credentials
+grafana_admin_user: "admin"
+grafana_admin_password: "VaultGrafanaPassword123!"
+
+# Telegram configuration
+telegram_bot_token: "123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ"
+telegram_chat_id: "-100123456789"
+
+# Email notifications
+smtp_host: "smtp.internal"
+smtp_port: 587
+smtp_user: "monitoring@company.internal"
+smtp_password: "VaultSmtpPassword123!"
+smtp_from: "monitoring@company.internal"

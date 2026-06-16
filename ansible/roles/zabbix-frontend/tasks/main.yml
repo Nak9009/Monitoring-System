@@ -1,0 +1,62 @@
+---
+# Install Zabbix Frontend with Nginx
+
+- name: Install Nginx and PHP components for Zabbix Frontend
+  apt:
+    name:
+      - nginx
+      - zabbix-frontend-php
+      - zabbix-nginx-conf
+      - php-fpm
+      - php-mysql
+    state: present
+    update_cache: yes
+
+- name: Configure Nginx virtual host for Zabbix
+  template:
+    src: nginx-zabbix.conf.j2
+    dest: /etc/nginx/sites-available/zabbix
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart nginx
+
+- name: Enable Nginx virtual host for Zabbix
+  file:
+    src: /etc/nginx/sites-available/zabbix
+    dest: /etc/nginx/sites-enabled/zabbix
+    state: link
+  notify: Restart nginx
+
+- name: Remove default Nginx site configuration
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Restart nginx
+
+- name: Configure Zabbix PHP frontend configuration
+  template:
+    src: zabbix.conf.php.j2
+    dest: /etc/zabbix/zabbix.conf.php
+    owner: www-data
+    group: www-data
+    mode: '0600'
+  notify: Restart php-fpm
+
+- name: Allow HTTP and HTTPS ports inbound
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - '80'
+    - '443'
+
+- name: Ensure Nginx and PHP services are running and enabled
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop:
+    - nginx
+    - php8.3-fpm # Adjust PHP version based on distribution if needed

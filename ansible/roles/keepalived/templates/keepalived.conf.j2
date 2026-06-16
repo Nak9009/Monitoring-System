@@ -1,0 +1,33 @@
+global_defs {
+    router_id {{ ansible_hostname }}
+    enable_script_security
+    script_user root
+}
+
+vrrp_script check_zabbix {
+    script "/etc/keepalived/scripts/check_zabbix.sh"
+    interval 3
+    fall 2
+    rise 2
+}
+
+vrrp_instance VI_1 {
+    state BACKUP
+    interface {{ keepalived_interface }}
+    virtual_router_id {{ keepalived_router_id }}
+    priority {{ keepalived_priority }}
+    advert_int 1
+
+    authentication {
+        auth_type PASS
+        auth_pass VrrpPasswordHA123!
+    }
+
+    virtual_ipaddress {
+        {{ keepalived_vip }}/24 dev {{ keepalived_interface }}
+    }
+
+    track_script {
+        check_zabbix
+    }
+}

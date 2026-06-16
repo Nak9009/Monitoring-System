@@ -1,0 +1,16 @@
+#!/bin/bash
+# Health check script for Keepalived to check Zabbix Server status
+
+# 1. Check if Zabbix Server process is running
+pgrep -f zabbix_server > /dev/null 2>&1
+ZABBIX_STATUS=$?
+
+# 2. Check if database port is open locally
+nc -z 127.0.0.1 3306 > /dev/null 2>&1
+DB_STATUS=$?
+
+if [ $ZABBIX_STATUS -eq 0 ] && [ $DB_STATUS -eq 0 ]; then
+    exit 0
+else
+    exit 1
+fi

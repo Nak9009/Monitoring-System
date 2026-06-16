@@ -1,0 +1,38 @@
+---
+# Common configuration tasks (NTP, Timezone, packages, firewalls)
+
+- name: Set system timezone
+  community.general.timezone:
+    name: "Asia/Bangkok"
+
+- name: Install baseline system packages
+  apt:
+    name:
+      - curl
+      - gnupg
+      - software-properties-common
+      - ufw
+      - git
+      - rsync
+      - htop
+      - unzip
+    state: present
+    update_cache: yes
+
+- name: Configure NTP client (systemd-timesyncd)
+  template:
+    src: timesyncd.conf.j2
+    dest: /etc/systemd/timesyncd.conf
+  notify: Restart timesyncd
+
+- name: Ensure UFW is enabled and baseline ports are open
+  ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+
+- name: Allow SSH inbound
+  ufw:
+    rule: allow
+    port: '22'
+    proto: tcp

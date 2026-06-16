@@ -1,0 +1,83 @@
+---
+# Install MySQL 8.0, configure database, and tune settings
+
+- name: Install MySQL Server and dependency packages
+  apt:
+    name:
+      - mysql-server
+      - python3-pymysql
+    state: present
+    update_cache: yes
+
+- name: Copy tuned mysql configuration
+  template:
+    src: my.cnf.j2
+    dest: /etc/mysql/mysql.conf.d/zabbix.cnf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart mysql
+
+- name: Ensure MySQL service is started and enabled
+  systemd:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Force handlers to run to ensure MySQL is restarted with new config
+  meta: flush_handlers
+
+- name: Create database for Zabbix
+  mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create database user for Zabbix (localhost and 127.0.0.1)
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    host: "{{ item }}"
+    priv: "{{ db_name }}.*:ALL"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  loop:
+    - 'localhost'
+    - '127.0.0.1'
+
+- name: Create database user for Zabbix (monitoring subnet / VIP)
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    host: "{{ item }}"
+    priv: "{{ db_name }}.*:ALL"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  loop:
+    - "{{ monitoring_subnet }}"
+    - "{{ zabbix_server_ip }}"
+
+- name: Create MySQL replication user
+  mysql_user:
+    name: "{{ mysql_repl_user }}"
+    password: "{{ mysql_repl_password }}"
+    host: "%"
+    priv: "*.*:REPLICATION SLAVE"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create Zabbix monitor user
+  mysql_user:
+    name: "zbx_monitor"
+    password: "MonitorPasswordPlaceholder123!"
+    host: "localhost"
+    priv: "*.*:USAGE,REPLICATION CLIENT,PROCESS"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Allow MySQL inbound from monitoring subnet
+  ufw:
+    rule: allow
+    port: "{{ mysql_port | string }}"
+    proto: tcp
+    src: "{{ monitoring_subnet }}"

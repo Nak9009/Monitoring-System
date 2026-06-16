@@ -1,0 +1,12 @@
+---
+grafana_port: 3000
+grafana_admin_user: "admin"
+grafana_admin_password: "VaultGrafanaPassword123!"
+smtp_enabled: "false"
+smtp_host: "smtp.internal:587"
+smtp_user: ""
+smtp_password: ""
+smtp_from_address: "monitoring@company.internal"
+zabbix_api_url: "http://localhost/zabbix/api_jsonrpc.php"
+zabbix_api_user: "Admin"
+zabbix_api_password: "zabbix_api_password_placeholder"

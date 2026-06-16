@@ -1,0 +1,11 @@
+---
+- name: Deploy Primary Monitoring Server Stack
+  hosts: monitoring_servers
+  become: yes
+  roles:
+    - common
+    - mysql
+    - zabbix-server
+    - zabbix-frontend
+    - grafana
+    - backup

@@ -1,0 +1,25 @@
+# Target provider: "proxmox" or "vsphere"
+target_provider = "proxmox"
+
+# Proxmox Settings (if target_provider = "proxmox")
+proxmox_api_endpoint = "https://proxmox.company.internal:8006/api2/json"
+proxmox_username     = "terraform@pve"
+proxmox_password     = "YourProxmoxApiTokenOrPasswordHere"
+
+# vSphere Settings (if target_provider = "vsphere")
+vsphere_server       = "vcenter.company.internal"
+vsphere_user         = "administrator@vsphere.local"
+vsphere_password     = "YourVSpherePasswordHere"
+vsphere_datacenter   = "Production-Datacenter"
+
+# VM Spec Configurations
+vm_count             = 2
+vm_name_prefix       = "mon"
+vm_cpu_cores         = 8
+vm_memory_mb         = 16384
+vm_disk_size_gb      = 500
+
+# SSH Keys to Inject (for cloud-init logins)
+ssh_public_keys = [
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPyourPublicKeyHere user@admin"
+]

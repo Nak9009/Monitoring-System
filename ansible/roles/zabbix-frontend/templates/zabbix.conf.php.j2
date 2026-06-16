@@ -1,0 +1,27 @@
+<?php
+// Zabbix GUI configuration file.
+global $DB;
+
+$DB['TYPE']     = 'MYSQL';
+$DB['SERVER']   = '{{ db_host }}';
+$DB['PORT']     = '{{ mysql_port | default(3306) }}';
+$DB['DATABASE'] = '{{ db_name }}';
+$DB['USER']     = '{{ db_user }}';
+$DB['PASSWORD'] = '{{ db_password }}';
+
+// Schema name. Used for IBM DB2 and PostgreSQL.
+$DB['SCHEMA'] = '';
+
+// Encryption settings
+$DB['ENCRYPTION'] = false;
+$DB['KEY_FILE']   = '';
+$DB['CERT_FILE']  = '';
+$DB['CA_FILE']    = '';
+$DB['VERIFY_HOST'] = false;
+$DB['CIPHER_LIST'] = '';
+
+$ZBX_SERVER      = '{{ zabbix_server_host }}';
+$ZBX_SERVER_PORT = '{{ zabbix_server_port }}';
+$ZBX_SERVER_NAME = '{{ zabbix_server_name }}';
+
+$IMAGE_FORMAT_DEFAULT = IMAGE_FORMAT_PNG;

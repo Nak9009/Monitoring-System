@@ -1,0 +1,66 @@
+---
+# Install Grafana 11, configure Zabbix plugin
+
+- name: Import Grafana repository GPG key
+  apt_key:
+    url: https://apt.grafana.com/gpg.key
+    state: present
+
+- name: Add Grafana official repository
+  apt_repository:
+    repo: "deb https://apt.grafana.com stable main"
+    state: present
+
+- name: Install Grafana 11
+  apt:
+    name: grafana
+    state: present
+    update_cache: yes
+
+- name: Configure Grafana
+  template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    owner: root
+    group: grafana
+    mode: '0640'
+  notify: Restart grafana
+
+- name: Create provisioning directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: grafana
+    mode: '0755'
+  loop:
+    - /etc/grafana/provisioning/datasources
+    - /etc/grafana/provisioning/dashboards
+
+- name: Auto-provision Zabbix datasource
+  copy:
+    src: provisioning/datasources/zabbix.yml
+    dest: /etc/grafana/provisioning/datasources/zabbix.yml
+    owner: root
+    group: grafana
+    mode: '0644'
+  notify: Restart grafana
+
+- name: Install Alexander Zobnin Zabbix datasource plugin
+  command: grafana-cli plugins install alexanderzobnin-zabbix-app
+  register: plugin_install_status
+  failed_when: false
+  changed_when: "'Installed' in plugin_install_status.stdout"
+  notify: Restart grafana
+
+- name: Allow Grafana inbound port
+  ufw:
+    rule: allow
+    port: '3000'
+    proto: tcp
+
+- name: Ensure Grafana service is running and enabled
+  systemd:
+    name: grafana-server
+    state: started
+    enabled: yes

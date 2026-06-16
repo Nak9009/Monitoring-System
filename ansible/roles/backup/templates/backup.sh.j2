@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Ansible-managed automated backup script
+
+set -euo pipefail
+
+BACKUP_DIR="{{ backup_destination_dir }}"
+KEEP_DAYS="{{ backup_retention_days }}"
+DATE=$(date +%Y%m%d_%H%M%S)
+
+echo "=== Backup Started: $(date) ==="
+
+# 1. Backup MySQL Database
+echo "Backing up MySQL database {{ db_name }}..."
+DB_FILE="$BACKUP_DIR/db_{{ db_name }}_$DATE.sql.gz"
+MYSQL_PWD="{{ db_password }}" mysqldump -u {{ db_user }} {{ db_name }} | gzip > "$DB_FILE"
+echo "Database backup saved to $DB_FILE"
+
+# 2. Backup Configurations
+echo "Backing up configurations..."
+CONFIG_FILE="$BACKUP_DIR/configs_$DATE.tar.gz"
+tar -czf "$CONFIG_FILE" /etc/zabbix /etc/grafana /etc/keepalived
+echo "Configuration backup saved to $CONFIG_FILE"
+
+# 3. Clean up old backups
+echo "Cleaning up backups older than $KEEP_DAYS days..."
+find "$BACKUP_DIR" -type f -name "*.gz" -mtime +"$KEEP_DAYS" -exec rm -f {} \; -print
+
+echo "=== Backup Completed: $(date) ==="

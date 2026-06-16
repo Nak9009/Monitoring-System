@@ -1,0 +1,26 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environments and Secrets
+.env
+*.env
+docker-compose/.env
+**/certs/
+**/*.key
+**/*.crt
+
+# Terraform files
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/crash.log
+**/*.tfvars
+**/.terraform.lock.hcl
+
+# Docker volumes and data
+mysql-data/
+zabbix-server-data/
+grafana-data/
+loki-data/
+uptime-kuma-data/

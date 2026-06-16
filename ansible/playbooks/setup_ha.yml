@@ -1,0 +1,6 @@
+---
+- name: Setup Keepalived High Availability
+  hosts: monitoring_servers
+  become: yes
+  roles:
+    - keepalived
