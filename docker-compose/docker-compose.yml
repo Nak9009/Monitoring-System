@@ -210,7 +210,8 @@ services:
         condition: service_started
     environment:
       ZBX_HOSTNAME: "mon-docker-host"
-      ZBX_SERVER_HOST: zabbix-server
+      ZBX_SERVER_HOST: "zabbix-server"
+      ZBX_PASSIVESERVERS: "172.20.0.0/16"
       ZBX_SERVER_PORT: 10051
       ZBX_ACTIVE_ALLOW: "true"
       ZBX_PASSIVE_ALLOW: "true"
@@ -401,3 +402,42 @@ services:
         reservations:
           cpus: '0.25'
           memory: 128M
+
+  # --------------------------------------------------------------------------
+  # Test Ubuntu VM (Simulated via Docker Container)
+  # --------------------------------------------------------------------------
+  test-ubuntu-vm:
+    image: zabbix/zabbix-agent2:ubuntu-7.0-latest
+    container_name: test-ubuntu-vm
+    hostname: test-ubuntu-vm
+    restart: unless-stopped
+    depends_on:
+      zabbix-server:
+        condition: service_started
+    environment:
+      ZBX_HOSTNAME: "test-ubuntu-vm"
+      ZBX_SERVER_HOST: "zabbix-server"
+      ZBX_PASSIVESERVERS: "172.20.0.0/16"
+      ZBX_SERVER_PORT: 10051
+      ZBX_ACTIVE_ALLOW: "true"
+      ZBX_PASSIVE_ALLOW: "true"
+      ZBX_TLSCONNECT: "psk"
+      ZBX_TLSACCEPT: "psk"
+      ZBX_TLSPSKIDENTITY: "monitoring-stack-psk"
+      ZBX_TLSPSKFILE: "/var/lib/zabbix/enc/secret.psk"
+    volumes:
+      - ./certs/test-ubuntu-vm.psk:/var/lib/zabbix/enc/secret.psk:ro
+    networks:
+      monitoring-backend:
+        ipv4_address: 172.20.1.50
+      monitoring-frontend:
+        ipv4_address: 172.20.0.50
+    deploy:
+      resources:
+        limits:
+          cpus: '3.0'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+

@@ -18,6 +18,12 @@ To perform testing, provision the following virtual machines and ensure they are
 > [!NOTE]  
 > All agents must point to the Keepalived Virtual IP (VIP) **`10.0.100.100`** rather than the individual physical IP of `mon-primary` or `mon-standby`.
 
+> [!TIP]
+> For local development and fast testing, a simulated **`test-ubuntu-vm`** is already pre-configured as a container in [docker-compose.yml](file:///Users/ratanakieng/labs/Monitoring-System/docker-compose/docker-compose.yml).
+> *   **DNS Name**: `test-ubuntu-vm` (IP: `172.20.1.50` on Docker backend network)
+> *   **Pre-Shared Key (PSK)**: `85106eb436861adac326c71f032e9b9092502c1239c9a89b93613c2d107836d8`
+> *   **PSK Identity**: `monitoring-stack-psk`
+
 ---
 
 ## 2. Firewall Rules & Port Matrix

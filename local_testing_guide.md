@@ -102,6 +102,22 @@ Configure your bot token and chat ID in the `.env` file, then trigger a test mes
 ./scripts/telegram-setup.sh
 ```
 
+### Scenario E: Verify Local Host Monitoring (test-ubuntu-vm sandbox)
+A simulated target VM `test-ubuntu-vm` is configured in your Docker Compose setup to evaluate agent monitoring locally:
+1. Log in to the Zabbix Web UI (`http://localhost:8080` or `https://localhost:8443`) using `Admin` / `zabbix`.
+2. Go to **Data collection** -> **Hosts** -> click **Create host**:
+   *   **Host name**: `test-ubuntu-vm`
+   *   **Templates**: `Linux by Zabbix agent`
+   *   **Host groups**: `Virtual Machines`
+   *   **Interfaces**: Click **Add** -> **Agent**. Set **DNS name** to `test-ubuntu-vm` (or IP address to `172.20.1.50`) and Port to `10050`.
+3. In the **Encryption** tab:
+   *   **Connections to host**: Select `PSK`
+   *   **Connections from host**: Check `PSK`
+   *   **PSK identity**: `monitoring-stack-psk`
+   *   **PSK**: `85106eb436861adac326c71f032e9b9092502c1239c9a89b93613c2d107836d8`
+4. Click **Update** (or **Add**). Wait 30–60 seconds. The availability indicator **ZBX** will turn **green**.
+5. Go to **Monitoring** -> **Latest data**, select host `test-ubuntu-vm`, and verify CPU/Memory charts are updating.
+
 ---
 
 ## 5. Stopping the Environment

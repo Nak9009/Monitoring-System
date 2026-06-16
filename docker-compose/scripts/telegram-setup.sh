@@ -49,10 +49,17 @@ echo "Success: Connected to bot @$BOT_NAME"
 
 # Send Test Message
 echo "Sending test message to Chat ID: $CHAT_ID..."
-MESSAGE="🚨 *Monitoring Alert Test* 🚨%0A%0A*Status:* OK%0A*Host:* mon-docker-host%0A*Message:* If you are reading this, your Telegram Bot integration is working perfectly!%0A*Time:* $(date)"
+MESSAGE="🚨 *Monitoring Alert Test* 🚨
 
-SEND_URL="https://api.telegram.org/bot$BOT_TOKEN/sendMessage?chat_id=$CHAT_ID&text=$MESSAGE&parse_mode=Markdown"
-SEND_RESPONSE=$(curl -s -w "\n%{http_code}" "$SEND_URL")
+*Status:* OK
+*Host:* mon-docker-host
+*Message:* If you are reading this, your Telegram Bot integration is working perfectly!
+*Time:* $(date)"
+
+SEND_RESPONSE=$(curl -s -w "\n%{http_code}" "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
+  --data "chat_id=$CHAT_ID" \
+  --data-urlencode "text=$MESSAGE" \
+  --data "parse_mode=Markdown")
 SEND_HTTP_CODE=$(echo "$SEND_RESPONSE" | tail -n1)
 SEND_BODY=$(echo "$SEND_RESPONSE" | sed '$d')
 

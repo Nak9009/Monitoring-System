@@ -5,7 +5,9 @@ This document provides a concrete, end-to-end sample tutorial on using the Zabbi
 ---
 
 ## Tutorial Objective
-*   **Target VM**: `test-ubuntu-vm` at IP `10.0.100.20`
+*   **Target VM**: `test-ubuntu-vm`
+    *   *Real VM Option*: IP `10.0.100.20`
+    *   *Docker Sandbox Option*: DNS name `test-ubuntu-vm` (IP `172.20.1.50`)
 *   **Goal**: Monitor the VM, create an alert trigger that fires when CPU utilization exceeds **80%**, simulate a high CPU load to fire the alert, and acknowledge/clear it in the dashboard.
 
 ---
@@ -13,9 +15,10 @@ This document provides a concrete, end-to-end sample tutorial on using the Zabbi
 ## Prerequisites: How to Get or Generate the PSK Key
 Before adding the host to the UI, you need the 64-character PSK hex key. 
 
-*   **Option 1: Read the existing key from the VM**
-    *   *On Ubuntu*: Run `sudo cat /etc/zabbix/zabbix_agent2.psk`
-    *   *On Windows*: Run `Get-Content "C:\Program Files\Zabbix Agent 2\zabbix_agent2.psk"` in PowerShell.
+*   **Option 1: Read the existing key from the VM / Sandbox**
+    *   *On Ubuntu VM*: Run `sudo cat /etc/zabbix/zabbix_agent2.psk`
+    *   *On Docker Sandbox*: The key is set to: `85106eb436861adac326c71f032e9b9092502c1239c9a89b93613c2d107836d8`
+    *   *On Windows VM*: Run `Get-Content "C:\Program Files\Zabbix Agent 2\zabbix_agent2.psk"` in PowerShell.
 *   **Option 2: Generate a new key from scratch**
     *   *On Linux/macOS*: Run `openssl rand -hex 32`
     *   *On Windows (PowerShell)*:
@@ -34,17 +37,17 @@ Before adding the host to the UI, you need the 64-character PSK hex key.
     *   **Password**: `zabbix`
 2.  Navigate to **Data collection** -> **Hosts** and click the blue **Create host** button in the top right.
 3.  Fill in the **Host** tab:
-    *   **Host name**: `test-ubuntu-vm` *(Must match the `Hostname` parameter in the VM's agent config)*
+    *   **Host name**: `test-ubuntu-vm` *(Must match the `Hostname` parameter in the agent config)*
     *   **Templates**: Search and select `Linux by Zabbix agent`.
     *   **Host groups**: Type and select `Virtual Machines`.
     *   **Interfaces**: Click **Add** -> select **Agent**:
-        *   **IP address**: `10.0.100.20`
+        *   **IP address**: `10.0.100.20` *(or DNS name `test-ubuntu-vm` if using the Docker Sandbox)*
         *   **Port**: `10050`
 4.  Fill in the **Encryption** tab (for PSK):
     *   **Connections to host**: Select `PSK`.
     *   **Connections from host**: Check `PSK`.
     *   **PSK identity**: `monitoring-stack-psk`
-    *   **PSK**: Paste your 64-character hex key (e.g. `d3b07384...`).
+    *   **PSK**: Paste your 64-character hex key (use `85106eb436861adac326c71f032e9b9092502c1239c9a89b93613c2d107836d8` if using the Docker Sandbox).
 5.  Click the blue **Add** button.
 6.  *Wait ~60 seconds.* Verify that the **ZBX** availability indicator icon in the Hosts table turns **green**.
 
@@ -58,36 +61,58 @@ Although the standard template already alerts when CPU is extremely high, we wil
 2.  Locate your newly added host `test-ubuntu-vm` and click on **Triggers** in its row.
 3.  Click **Create trigger** in the top-right corner.
 4.  Configure the Trigger:
-    *   **Name**: `High CPU Load Detected (Over 80%) on test-ubuntu-vm`
+    *   **Name**: `High CPU Load Detected on test-ubuntu-vm`
     *   **Severity**: Select 🟠 **Average**.
     *   **Expression**: Click **Add** to build the formula:
         *   *Item*: Click **Select** -> choose `CPU utilization`.
         *   *Function*: Select `last()` (most recent value).
-        *   *Result*: Select `>` (greater than) and enter `80`.
+        *   *Result*: Select `>` (greater than) and enter:
+            *   **`5`** (if using the **Docker Sandbox** - since the container cannot stress your whole host machine).
+            *   **`80`** (if using a **Real VM**).
         *   Click **Insert**. The expression should read:
             ```text
-            last(/test-ubuntu-vm/system.cpu.util) > 80
+            last(/test-ubuntu-vm/system.cpu.util) > 5
             ```
-    *   **Description**: `Trigger fires when CPU utilization exceeds 80% on the target VM.`
+    *   **Description**: `Trigger fires when CPU utilization exceeds threshold.`
 5.  Click **Add**.
 
 ---
 
 ## Step 3: Simulate High CPU Load on the Target VM
 
-To test the trigger, log in to the monitored target VM (`test-ubuntu-vm` at `10.0.100.20`) via SSH and execute a stress test to force CPU utilization above 80%.
+Select the option below that matches your environment:
 
-1.  SSH into the VM:
+### Option A: If using the Docker Sandbox Container
+Because the Zabbix agent in the container reads the host's `/proc/stat` to calculate CPU utilization, a single-threaded loop inside a CPU-limited container will only consume a tiny fraction of the total CPU on multi-core host machines (for instance, on a 12-core host, a single loop capped at `0.5` CPUs is only `0.5 / 12 = 4.16%` CPU utilization), which might not reliably cross the `> 5` threshold.
+
+To resolve this, we have increased the `test-ubuntu-vm` container's CPU limit to `3.0` in [docker-compose.yml](file:///Users/ratanakieng/labs/Monitoring-System/docker-compose/docker-compose.yml), and we will spawn multiple parallel loops to generate sufficient CPU load:
+
+1.  **Start the CPU load generator**:
+    Run 3 parallel CPU-heavy loops in the background inside the container and use `wait` to keep the session alive:
+    ```bash
+    docker exec -d test-ubuntu-vm sh -c "while true; do true; done & while true; do true; done & while true; do true; done & wait"
+    ```
+2.  **Verify**: Check the Zabbix Web UI (**Monitoring** -> **Latest data** or the Dashboard). The trigger will fire and turn the dashboard red.
+3.  **To stop the CPU load**:
+    Simply restart the container to clear the background loops:
+    ```bash
+    docker compose restart test-ubuntu-vm
+    ```
+
+---
+
+### Option B: If using a Real VM
+1.  **SSH into the VM**:
     ```bash
     ssh username@10.0.100.20
     ```
-2.  Install the CPU stress tool:
+2.  **Install the CPU stress tool**:
     ```bash
     sudo apt update && sudo apt install -y stress
     ```
-3.  Launch the CPU stress test (occupy all cores):
+3.  **Launch the CPU stress test**:
     ```bash
-    # Run a CPU stress test for 5 minutes (300 seconds)
+    # Run a CPU stress test on 4 cores for 5 minutes (300 seconds)
     stress --cpu 4 --timeout 300
     ```
 
