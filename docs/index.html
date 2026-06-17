@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Monitoring Stack — Documentation Portal</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Prism.js (Syntax Highlighting) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="docs.css">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i data-lucide="activity" class="pulse-icon"></i>
+                    <span>Monitoring Stack</span>
+                </div>
+                <div class="version">v7.0 MySQL</div>
+            </div>
+            
+            <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="search-input" placeholder="Search documentation...">
+                <kbd class="shortcut-kbd">⌘K</kbd>
+            </div>
+            
+            <nav class="sidebar-nav" id="sidebar-nav">
+                <!-- Navigation links will be injected here -->
+            </nav>
+            
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="theme-btn" title="Toggle theme">
+                    <i data-lucide="sun" class="sun-icon"></i>
+                    <i data-lucide="moon" class="moon-icon"></i>
+                    <span>Toggle Theme</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Panel -->
+        <main class="content-panel">
+            <header class="content-header">
+                <button id="menu-toggle" class="menu-btn">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="breadcrumb">
+                    <span id="breadcrumb-category">Documentation</span>
+                    <i data-lucide="chevron-right"></i>
+                    <span id="breadcrumb-page" class="active">README</span>
+                </div>
+                <div class="header-actions">
+                    <a id="github-link" href="https://github.com/Nak9009/Monitoring-System" target="_blank" class="github-btn">
+                        <i data-lucide="github"></i>
+                        <span>GitHub</span>
+                    </a>
+                </div>
+            </header>
+            
+            <div class="content-body" id="content-body">
+                <!-- Markdown content will be rendered here -->
+            </div>
+        </main>
+
+        <!-- Table of Contents Panel (Right Sidebar) -->
+        <aside class="toc-panel">
+            <div class="toc-header">
+                <i data-lucide="list"></i>
+                <span>ON THIS PAGE</span>
+            </div>
+            <nav class="toc-nav" id="toc-nav">
+                <!-- Headings will be injected here -->
+            </nav>
+        </aside>
+    </div>
+
+    <!-- CDNs for rendering -->
+    <!-- Marked.js (Markdown Parser) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Prism.js (Code Highlighting) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-ini.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+    
+    <!-- Mermaid.js (Diagram Rendering) -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    
+    <!-- Data and Application Logic -->
+    <script src="docs-data.js"></script>
+    <script src="docs.js"></script>
+</body>
+</html>

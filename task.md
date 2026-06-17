@@ -5,3 +5,5 @@
 - [x] Update Ansible Zabbix server and frontend configurations
 - [x] Update backup scripts (mysqldump)
 - [x] Verify configurations and update documentation walkthroughs
+- [x] Fix offline sidebar menu loading bug in portal
+

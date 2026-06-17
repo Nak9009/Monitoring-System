@@ -73,6 +73,27 @@ terraform init && terraform plan && terraform apply
 # Then run Ansible against provisioned VMs
 ```
 
+## Interactive HTML Documentation Portal
+We have compiled all system architecture plans, installation guides, and operational manuals into a premium, interactive **HTML Documentation Portal** located in the `docs/` directory.
+
+### Features:
+* **Offline-capable**: Works completely offline by opening `docs/index.html` directly in any browser (via `file://` protocol).
+* **Live Search**: Instantly searches through titles and body text across all guides.
+* **Mermaid.js Integration**: Renders vector-graph network topologies and data pipelines directly in the UI.
+* **Light / Dark Mode**: Seamless toggle support with custom themes.
+
+### Viewing the Portal:
+Simply open the file [docs/index.html](file:///Users/ratanakieng/.gemini/antigravity/scratch/monitoring-stack/docs/index.html) in your browser:
+```bash
+open docs/index.html
+```
+
+### Rebuilding the Portal:
+If you modify or add any markdown files (`*.md`) in the root directory, rebuild the portal's data store by running:
+```bash
+python3 build_docs.py
+```
+
 ## Ports Reference
 
 | Port  | Service              |
