@@ -1,6 +1,6 @@
 # ============================================================================
 # Enterprise Monitoring Stack — Docker Compose
-# Zabbix 7.0 LTS + Grafana 11 + PostgreSQL/TimescaleDB + Loki + Uptime Kuma
+# Zabbix 7.0 LTS + Grafana 11 + MySQL 8.0 + Loki + Uptime Kuma
 # ============================================================================
 #
 # Usage:

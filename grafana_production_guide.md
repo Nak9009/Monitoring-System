@@ -173,20 +173,19 @@ GF_AUTH_GOOGLE_ALLOW_SIGN_UP=true
 
 By default, Grafana stores its state (dashboards, users, alerts) inside an ephemeral SQLite database (`/var/lib/grafana/grafana.db`). **For production, you must migrate this to PostgreSQL or MySQL** so that you can scale Grafana horizontally without data loss.
 
-### 5.1 Setting Up a Production PostgreSQL State Store
-1. Edit `docker-compose.yml` to inject the PostgreSQL connection variables to your Grafana container:
+### 5.1 Setting Up a Production MySQL State Store
+1. Edit `docker-compose.yml` to inject the MySQL connection variables to your Grafana container:
 
 ```yaml
   grafana:
     image: grafana/grafana-oss:11.6.0
     environment:
       # Database connection parameters
-      GF_DATABASE_TYPE: postgres
-      GF_DATABASE_HOST: postgres-ha:5432
+      GF_DATABASE_TYPE: mysql
+      GF_DATABASE_HOST: mysql:3306
       GF_DATABASE_NAME: grafana
-      GF_DATABASE_USER: grafana_admin
-      GF_DATABASE_PASSWORD: ${GRAFANA_DB_PASSWORD:?Set GRAFANA_DB_PASSWORD in .env}
-      GF_DATABASE_SSL_MODE: require
+      GF_DATABASE_USER: grafana
+      GF_DATABASE_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
 ```
 
-2. When Grafana restarts, it will automatically run schema migrations and populate the tables inside the target PostgreSQL database. You can now safely run multiple Grafana containers behind a load balancer!
+2. When Grafana restarts, it will automatically run schema migrations and populate the tables inside the target MySQL database. You can now safely run multiple Grafana containers behind a load balancer!

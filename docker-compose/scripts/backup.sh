@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Enterprise Monitoring Stack — Automated Backup Script
-# PostgreSQL database backup + Zabbix configuration + Grafana dashboard export
+# MySQL database backup + Zabbix configuration + Grafana dashboard export
 # ==============================================================================
 
 set -euo pipefail
