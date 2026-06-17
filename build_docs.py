@@ -22,13 +22,14 @@ def main():
         'monitoring_system_design.md': 2,
         'installation_guide.md': 3,
         'local_testing_guide.md': 4,
-        'production_deployment_guide.md': 5,
-        'grafana_production_guide.md': 6,
-        'zabbix_ui_guide.md': 7,
-        'zabbix_ui_sample_walkthrough.md': 8,
-        'services_guide.md': 9,
-        'vm_testing_guide.md': 10,
-        'walkthrough.md': 11
+        'agent_docker_install_guide.md': 5,
+        'production_deployment_guide.md': 6,
+        'grafana_production_guide.md': 7,
+        'zabbix_ui_guide.md': 8,
+        'zabbix_ui_sample_walkthrough.md': 9,
+        'services_guide.md': 10,
+        'vm_testing_guide.md': 11,
+        'walkthrough.md': 12
     }
     
     md_files.sort(key=lambda x: order.get(x, 99))

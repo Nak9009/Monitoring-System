@@ -435,9 +435,36 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '3.0'
+          cpus: '1.0'
           memory: 256M
         reservations:
           cpus: '0.1'
           memory: 64M
+
+  # --------------------------------------------------------------------------
+  # Simulated Ubuntu Target VM with SSH enabled (For manual/Ansible agent tests)
+  # --------------------------------------------------------------------------
+  test-ssh-vm:
+    build:
+      context: .
+      dockerfile: configs/test-vm/Dockerfile
+    container_name: test-ssh-vm
+    hostname: test-ssh-vm
+    restart: unless-stopped
+    ports:
+      - "2222:22"
+    networks:
+      monitoring-backend:
+        ipv4_address: 172.20.1.60
+      monitoring-frontend:
+        ipv4_address: 172.20.0.60
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.15'
+          memory: 128M
+
 
