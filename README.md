@@ -1,11 +1,11 @@
 # Enterprise Monitoring Stack — Infrastructure as Code
 
-Production-ready IaC for deploying **Zabbix 7.0 LTS + Grafana 11 + PostgreSQL/TimescaleDB** monitoring infrastructure.
+Production-ready IaC for deploying **Zabbix 7.0 LTS + Grafana 11 + MySQL 8.0** monitoring infrastructure.
 
 ## Architecture
 
 ```
-Zabbix Server 7.0 ──► PostgreSQL 16 + TimescaleDB
+Zabbix Server 7.0 ──► MySQL 8.0 (Active-Standby Replication)
        │
        ├── Zabbix Frontend (Nginx + PHP)
        ├── Grafana 11 OSS (Dashboards)
@@ -29,7 +29,7 @@ monitoring-stack/
 │   ├── playbooks/
 │   └── roles/
 │       ├── common/
-│       ├── postgresql/
+│       ├── mysql/
 │       ├── zabbix-server/
 │       ├── zabbix-frontend/
 │       ├── zabbix-agent/
@@ -82,5 +82,5 @@ terraform init && terraform plan && terraform apply
 | 3001  | Uptime Kuma         |
 | 10051 | Zabbix Server       |
 | 10050 | Zabbix Agent        |
-| 5432  | PostgreSQL          |
+| 3306  | MySQL               |
 | 3100  | Loki                |

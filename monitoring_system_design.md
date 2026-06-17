@@ -29,12 +29,12 @@
 
 ## 1. Recommended Monitoring Stack & Justification
 
-### Primary Stack: **Zabbix 7.x + Grafana + PostgreSQL**
+#### Primary Stack: **Zabbix 7.x + Grafana + MySQL 8.0**
 
 | Component | Tool | Justification |
 |-----------|------|---------------|
 | **Monitoring Engine** | Zabbix 7.0 LTS | Enterprise-grade, agent-based & agentless, native SNMP, auto-discovery, built-in alerting, 5-year LTS support |
-| **Time-Series DB** | PostgreSQL 16 + TimescaleDB | Superior performance for Zabbix at scale, native partitioning, compression (10:1 ratio) |
+| **Time-Series DB** | MySQL 8.0 | Robust performance, low overhead, replication support, tuned for memory limits (1 GB buffer pool) |
 | **Visualization** | Grafana 11 OSS | Rich dashboards, Zabbix data source plugin, community templates, alerting extensions |
 | **Log Aggregation** | Loki + Promtail | Lightweight log collection, label-based querying, integrates with Grafana |
 | **Uptime Monitoring** | Zabbix + Uptime Kuma | External synthetic checks, status pages for stakeholders |
@@ -71,8 +71,8 @@
 │  │  └──────┬───────┘  └──────────────┘  └──────┬───────┘                │     │
 │  │         │                                    │                        │     │
 │  │  ┌──────▼───────────────────────────────────▼───────┐                │     │
-│  │  │           PostgreSQL 16 + TimescaleDB             │                │     │
-│  │  │              (Port 5432)                          │                │     │
+│  │  │                 MySQL 8.0 Database                        │                │     │
+│  │  │                    (Port 3306)                            │                │     │
 │  │  └──────────────────────────────────────────────────┘                │     │
 │  │                                                                       │     │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                │     │
@@ -87,9 +87,9 @@
 │  │                    (mon-standby.internal)                              │     │
 │  │                                                                       │     │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                │     │
-│  │  │  Zabbix      │  │  PostgreSQL  │  │  Grafana     │                │     │
+│  │  │  Zabbix      │  │  MySQL       │  │  Grafana     │                │     │
 │  │  │  Server      │  │  Replica     │  │  (Standby)   │                │     │
-│  │  │  (Standby)   │  │  (Streaming) │  │              │                │     │
+│  │  │  (Standby)   │  │  (Port 3306) │  │              │                │     │
 │  │  └──────────────┘  └──────────────┘  └──────────────┘                │     │
 │  └─────────────────────────────────────────────────────────────────────────┘     │
 │                                                                                 │
@@ -99,7 +99,7 @@
 │  │                                                                       │     │
 │  │  ┌──────────────┐  ┌──────────────┐                                  │     │
 │  │  │  Zabbix      │  │  SQLite /    │                                  │     │
-│  │  │  Proxy       │  │  PostgreSQL  │                                  │     │
+│  │  │  Proxy       │  │  MySQL       │  │                                  │     │
 │  │  │  (Active)    │  │  (Local)     │                                  │     │
 │  │  └──────────────┘  └──────────────┘                                  │     │
 │  └─────────────────────────────────────────────────────────────────────────┘     │
@@ -141,7 +141,7 @@
 ### Data Flow Summary
 
 ```
-Monitored Host ──[Agent 2 / SNMP / API]──► Zabbix Server ──► PostgreSQL/TimescaleDB
+Monitored Host ──[Agent 2 / SNMP / API]──► Zabbix Server ──► MySQL 8.0
                                                 │
                                                 ├──► Zabbix Frontend (Web UI)
                                                 ├──► Grafana (Dashboards)
@@ -180,7 +180,7 @@ Monitored Host ──[Agent 2 / SNMP / API]──► Zabbix Server ──► Pos
 | mon-primary | SMTP relay | 25,587/tcp | TCP | Email alerts |
 | Admin VLAN | mon-primary | 443,3000/tcp | TCP | Web UI access (Zabbix, Grafana) |
 | mon-primary | Hypervisors | 443/tcp | TCP | VMware/Proxmox API |
-| mon-primary | mon-standby | 5432/tcp | TCP | PostgreSQL replication |
+| mon-primary | mon-standby | 3306/tcp | TCP | MySQL replication |
 
 ### DNS Records
 
@@ -201,17 +201,17 @@ zabbix.internal.         CNAME mon-vip.internal.
 
 | Server | Role | vCPU | RAM | Disk | OS |
 |--------|------|------|-----|------|-----|
-| mon-primary | Zabbix Server + Frontend + Grafana + PostgreSQL | 8 | 16 GB | 500 GB SSD | Ubuntu 24.04 LTS |
-| mon-standby | Hot Standby (all components) | 8 | 16 GB | 500 GB SSD | Ubuntu 24.04 LTS |
+| mon-primary | Zabbix Server + Frontend + Grafana + MySQL 8.0 | 8 | 4 GB | 500 GB SSD | Ubuntu 24.04 LTS |
+| mon-standby | Hot Standby (all components) | 8 | 4 GB | 500 GB SSD | Ubuntu 24.04 LTS |
 
 ### Future Scale (100+ VMs)
 
 | Server | Role | vCPU | RAM | Disk | OS |
 |--------|------|------|-----|------|-----|
-| mon-zabbix-01 | Zabbix Server + Frontend | 8 | 16 GB | 100 GB SSD | Ubuntu 24.04 LTS |
-| mon-zabbix-02 | Zabbix Server (HA node) | 8 | 16 GB | 100 GB SSD | Ubuntu 24.04 LTS |
-| mon-db-01 | PostgreSQL Primary + TimescaleDB | 8 | 32 GB | 1 TB NVMe SSD | Ubuntu 24.04 LTS |
-| mon-db-02 | PostgreSQL Replica | 8 | 32 GB | 1 TB NVMe SSD | Ubuntu 24.04 LTS |
+| mon-zabbix-01 | Zabbix Server + Frontend | 8 | 8 GB | 100 GB SSD | Ubuntu 24.04 LTS |
+| mon-zabbix-02 | Zabbix Server (HA node) | 8 | 8 GB | 100 GB SSD | Ubuntu 24.04 LTS |
+| mon-db-01 | MySQL Primary | 8 | 16 GB | 1 TB NVMe SSD | Ubuntu 24.04 LTS |
+| mon-db-02 | MySQL Replica | 8 | 16 GB | 1 TB NVMe SSD | Ubuntu 24.04 LTS |
 | mon-grafana | Grafana + Loki | 4 | 8 GB | 200 GB SSD | Ubuntu 24.04 LTS |
 | mon-proxy-01 | Zabbix Proxy (remote site) | 4 | 4 GB | 50 GB SSD | Ubuntu 24.04 LTS |
 
@@ -225,22 +225,27 @@ zabbix.internal.         CNAME mon-vip.internal.
 
 *NVPS = New Values Per Second
 
-### PostgreSQL Tuning (16 GB RAM)
+### MySQL 8.0 Tuning (4 GB RAM Budget)
 
 ```ini
-# /etc/postgresql/16/main/postgresql.conf
-shared_buffers = 4GB
-effective_cache_size = 12GB
-work_mem = 64MB
-maintenance_work_mem = 1GB
-max_connections = 200
-checkpoint_completion_target = 0.9
-wal_buffers = 64MB
-random_page_cost = 1.1          # SSD
-effective_io_concurrency = 200  # SSD
-max_worker_processes = 8
-max_parallel_workers_per_gather = 4
-max_parallel_workers = 8
+# /etc/mysql/mysql.conf.d/zabbix.cnf
+port = 3306
+bind-address = 0.0.0.0
+innodb_buffer_pool_size = 1G
+innodb_buffer_pool_instances = 1
+innodb_log_file_size = 256M
+innodb_log_buffer_size = 16M
+max_connections = 150
+innodb_flush_log_at_trx_commit = 2
+innodb_flush_method = O_DIRECT
+server-id = 1
+log_bin = /var/log/mysql/mysql-bin.log
+binlog_format = ROW
+binlog_expire_logs_seconds = 259200
+log_bin_trust_function_creators = 1
+skip-name-resolve
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
 ```
 
 ---
@@ -1031,7 +1036,7 @@ tar czf "$BACKUP_DIR/config_backup.tar.gz" \
     /etc/zabbix/ \
     /etc/grafana/ \
     /etc/nginx/sites-available/ \
-    /etc/postgresql/
+    /etc/mysql/
 
 # 5. Copy to remote storage
 echo "[$(date)] Syncing to remote storage..."
@@ -1043,7 +1048,7 @@ find /backup/monitoring/ -maxdepth 1 -type d -mtime +$RETENTION_DAYS -exec rm -r
 
 # 7. Verify backup integrity
 echo "[$(date)] Verifying backup..."
-pg_restore --list "$BACKUP_DIR"/zabbix_db_*.dump > /dev/null 2>&1
+gunzip -t "$BACKUP_DIR"/zabbix_db_*.sql.gz > /dev/null 2>&1
 if [ $? -eq 0 ]; then
     echo "[$(date)] ✅ Backup verification PASSED"
 else
@@ -1074,8 +1079,8 @@ echo "[$(date)] Backup completed successfully."
     │  Zabbix Server      │  │  Zabbix Server       │
     │  (ACTIVE)           │  │  (STANDBY)           │
     │                     │  │                      │
-    │  PostgreSQL         │──│  PostgreSQL           │
-    │  (PRIMARY)          │  │  (STREAMING REPLICA)  │
+    │  MySQL              │──│  MySQL               │
+    │  (PRIMARY)          │  │  (REPLICA)           │
     │                     │  │                      │
     │  Grafana            │  │  Grafana              │
     │  (ACTIVE)           │  │  (STANDBY)            │
@@ -1083,7 +1088,7 @@ echo "[$(date)] Backup completed successfully."
 
     Failover: Keepalived monitors Zabbix process
     → VIP moves to standby
-    → PostgreSQL promotes replica
+    → MySQL promotes replica (removes read_only)
     → Zabbix starts on standby
     → RTO: < 2 minutes
 ```
@@ -1094,7 +1099,7 @@ echo "[$(date)] Backup completed successfully."
 |------|--------|-----|
 | 1 | Detect primary failure (automatic via Keepalived) | 30s |
 | 2 | VIP failover to standby node | 10s |
-| 3 | Promote PostgreSQL replica to primary | 30s |
+| 3 | Promote MySQL replica to primary (remove read_only) | 30s |
 | 4 | Start Zabbix Server on standby | 60s |
 | 5 | Verify monitoring resumes | 30s |
 | **Total** | **Automatic failover** | **< 3 minutes** |
@@ -1104,8 +1109,8 @@ echo "[$(date)] Backup completed successfully."
 | Step | Action | RTO |
 |------|--------|-----|
 | 1 | Provision new VM from template | 30 min |
-| 2 | Install Zabbix + PostgreSQL + Grafana (Ansible) | 30 min |
-| 3 | Restore PostgreSQL from backup | 1-2 hours |
+| 2 | Install Zabbix + MySQL + Grafana (Ansible) | 30 min |
+| 3 | Restore MySQL from backup | 1-2 hours |
 | 4 | Restore Zabbix/Grafana configuration | 15 min |
 | 5 | Redeploy agents (Ansible) | 30 min |
 | 6 | Verify all hosts reporting | 15 min |
@@ -1205,7 +1210,7 @@ GRANT SELECT ON mysql.* TO 'zbx_monitor'@'localhost';
 ### Phase Overview
 
 ```
-Phase 1 (Week 1-2):   Foundation — Server setup, Zabbix core, PostgreSQL
+Phase 1 (Week 1-2):   Foundation — Server setup, Zabbix core, MySQL
 Phase 2 (Week 3-4):   Agent Deployment — Linux & Windows agents across all VMs
 Phase 3 (Week 5-6):   Service Monitoring — MySQL, Redis, RabbitMQ, Apps
 Phase 4 (Week 7-8):   Network & Visualization — SNMP, Grafana, Dashboards
@@ -1219,11 +1224,11 @@ Phase 6 (Week 11-12): HA, Security, Documentation — Standby, hardening
 
 | Day | Task | Details |
 |-----|------|---------|
-| 1-2 | **Provision monitoring VMs** | Create mon-primary (8 vCPU, 16GB, 500GB SSD) and mon-standby |
+| 1-2 | **Provision monitoring VMs** | Create mon-primary (8 vCPU, 4GB, 500GB SSD) and mon-standby |
 | 2-3 | **Install Ubuntu 24.04 LTS** | Hardened base image, CIS benchmarks |
-| 3 | **Install PostgreSQL 16** | Configure tuning parameters, create zabbix database |
-| 3 | **Install TimescaleDB** | Extension for PostgreSQL, configure compression |
-| 4 | **Install Zabbix Server 7.0 LTS** | From official repository, connect to PostgreSQL |
+| 3 | **Install MySQL 8.0** | Configure tuning parameters, create zabbix database & user |
+| 3 | **Configure permissions** | Configure replication & monitor users, enable log_bin_trust_function_creators |
+| 4 | **Install Zabbix Server 7.0 LTS** | From official repository, connect to MySQL |
 | 4 | **Install Zabbix Frontend** | Nginx + PHP-FPM, configure HTTPS |
 | 5 | **Initial configuration** | Admin password, authentication, time zone |
 | 5 | **Import official templates** | OS Linux, OS Windows, MySQL, Redis, etc. |
@@ -1283,7 +1288,7 @@ Phase 6 (Week 11-12): HA, Security, Documentation — Standby, hardening
 
 | Day | Task | Details |
 |-----|------|---------|
-| 51-52 | **PostgreSQL streaming replication** | Setup replica on mon-standby |
+| 51-52 | **MySQL active-standby replication** | Setup replica on mon-standby |
 | 53 | **Install Keepalived** | VIP failover between primary and standby |
 | 54 | **Configure Zabbix HA** | Standby node configuration |
 | 55 | **Security hardening** | TLS, SNMP v3, firewall rules, audit log |
@@ -1299,12 +1304,12 @@ Phase 6 (Week 11-12): HA, Security, Documentation — Standby, hardening
 ### Hardware Costs (On-Premises)
 
 > [!NOTE]
-> Zabbix, Grafana, PostgreSQL, Loki, and Uptime Kuma are all **open-source and free**. The only costs are hardware/infrastructure and staff time.
+> Zabbix, Grafana, MySQL, Loki, and Uptime Kuma are all **open-source and free**. The only costs are hardware/infrastructure and staff time.
 
 | Item | Specification | Qty | Unit Cost (USD) | Total (USD) |
 |------|--------------|-----|----------------|-------------|
-| **Primary monitoring VM** | 8 vCPU, 16GB RAM, 500GB SSD | 1 | $0* | $0 |
-| **Standby monitoring VM** | 8 vCPU, 16GB RAM, 500GB SSD | 1 | $0* | $0 |
+| **Primary monitoring VM** | 8 vCPU, 4GB RAM, 500GB SSD | 1 | $0* | $0 |
+| **Standby monitoring VM** | 8 vCPU, 4GB RAM, 500GB SSD | 1 | $0* | $0 |
 | **NAS storage for backups** | 2TB usable (already exists) | — | $0* | $0 |
 | **SSL certificates** | Internal CA (free) | — | $0 | $0 |
 
@@ -1315,8 +1320,7 @@ Phase 6 (Week 11-12): HA, Security, Documentation — Standby, hardening
 | Software | License | Annual Cost |
 |----------|---------|-------------|
 | Zabbix Server 7.0 LTS | GPL v2 (Free) | $0 |
-| PostgreSQL 16 | PostgreSQL License (Free) | $0 |
-| TimescaleDB Community | Timescale License (Free) | $0 |
+| MySQL 8.0 Community | GPL (Free) | $0 |
 | Grafana 11 OSS | AGPL v3 (Free) | $0 |
 | Loki | AGPL v3 (Free) | $0 |
 | Uptime Kuma | MIT (Free) | $0 |
@@ -1613,7 +1617,7 @@ Reporting: Weekly PDF + Monthly management report
 |----------------|-----|---------------|
 | Zabbix Server process | Uptime Kuma external check | Telegram (separate bot) |
 | Zabbix NVPS rate | Internal item `zabbix[wcache,values]` | Email to ops manager |
-| PostgreSQL replication lag | Standby server check | Telegram |
+| MySQL replication lag | Standby server check | Telegram |
 | Disk space on monitoring server | Local agent | Telegram + Email |
 | Zabbix queue size | `zabbix[queue,10m]` | Telegram (>100 = WARNING) |
 | Backup success/failure | Backup script exit code | Telegram |
@@ -1647,11 +1651,11 @@ Reporting: Weekly PDF + Monthly management report
    → Buffers data during network outages
    → Reduces central server load by 70%
 
-6. PostgreSQL maintenance:
-   - VACUUM ANALYZE weekly
-   - Reindex monthly
-   - Monitor table bloat
-   - TimescaleDB continuous aggregates for dashboard queries
+6. MySQL maintenance:
+   - OPTIMIZE TABLE monthly (for fragmented tables)
+   - Monitor InnoDB buffer pool hit ratio (>99% target)
+   - Enable slow query log (`long_query_time = 3`) to identify bottlenecks
+   - Weekly verification of backups (`gunzip -t` testing)
 ```
 
 ### 15.9 Integration Architecture
@@ -1710,7 +1714,7 @@ fi
 |------|----------|---------|-----------|
 | 10050 | TCP | Zabbix Agent (passive) | Server → Agent |
 | 10051 | TCP | Zabbix Agent (active) / Trapper | Agent → Server |
-| 5432 | TCP | PostgreSQL | Internal |
+| 3306 | TCP | MySQL | Internal |
 | 3000 | TCP | Grafana | Admin → Server |
 | 443 | TCP | Zabbix Frontend (HTTPS) | Admin → Server |
 | 161 | UDP | SNMP polling | Server → Device |
@@ -1724,7 +1728,7 @@ fi
 | Zabbix Server | `/etc/zabbix/zabbix_server.conf` | Core server configuration |
 | Zabbix Frontend | `/etc/zabbix/web/zabbix.conf.php` | Frontend DB connection |
 | Zabbix Agent 2 | `/etc/zabbix/zabbix_agent2.conf` | Agent configuration |
-| PostgreSQL | `/etc/postgresql/16/main/postgresql.conf` | Database tuning |
+| MySQL | `/etc/mysql/my.cnf` or `/etc/mysql/mysql.conf.d/zabbix.cnf` | Database tuning |
 | Grafana | `/etc/grafana/grafana.ini` | Grafana configuration |
 | Nginx (Zabbix) | `/etc/nginx/sites-available/zabbix` | Web server config |
 | Loki | `/etc/loki/local-config.yaml` | Log aggregation config |

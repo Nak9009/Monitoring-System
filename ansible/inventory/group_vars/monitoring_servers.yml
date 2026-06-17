@@ -1,14 +1,13 @@
 ---
 # Monitoring server specific variables
 
-postgres_version: "16"
-timescaledb_version: "2.14"
-
-# Postgres tuning parameters for 4GB RAM monitoring server
-pg_shared_buffers: "1GB"
-pg_effective_cache_size: "3GB"
-pg_work_mem: "16MB"
-pg_maintenance_work_mem: "256MB"
+# MySQL tuning parameters for 4GB RAM monitoring server
+mysql_port: 3306
+mysql_buffer_pool_size: "1G"
+mysql_buffer_pool_instances: 1
+mysql_log_file_size: "256M"
+mysql_log_buffer_size: "16M"
+mysql_max_connections: 150
 
 # Keepalived HA Virtual IP configuration
 keepalived_vip: "10.0.100.100"

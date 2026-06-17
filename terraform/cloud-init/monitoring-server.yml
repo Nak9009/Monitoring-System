@@ -39,7 +39,7 @@ runcmd:
   - ufw allow 10050/tcp # Zabbix Agent
   - ufw allow 10051/tcp # Zabbix Server
   - ufw allow 3000/tcp  # Grafana
-  - ufw allow 5432/tcp  # PostgreSQL
+  - ufw allow 3306/tcp  # MySQL
   - ufw allow proto vrrp # Keepalived
   - ufw --force enable
   
